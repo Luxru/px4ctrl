@@ -9,18 +9,18 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-#include "bridge.h"
-#include "datas.h"
-#include "server.h"
-#include "types.h"
-#include "controller.h"
+#include "px4/bridge.h"
+#include "common/types.h"
+#include "common/datas.h"
+#include "zmq/server.h"
+#include "controller/controller.h"
 
 namespace px4ctrl {
 
     struct LState{
         Px4CtrlState state,last_state,next_state;
         
-        //下一次调用step后，state变为next_state
+        //after assignment, the state will be updated to next_state
         LState& operator=(const Px4CtrlState& rhs) noexcept{
             if(state==rhs){
                 return *this;
@@ -121,7 +121,7 @@ namespace px4ctrl {
               OffboardControlMode messages drops below approximately 2Hz. 
               
             */
-            bool guard();//监视状态（电池，速度，位置，姿态等
+            bool guard();//TODO
 
             //ctrl state
             LState L0,L1,L2;

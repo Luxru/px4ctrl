@@ -5,8 +5,8 @@
 /*************************************************************/
 #pragma once
 
-#include "types.h"
-#include "params.h"
+#include "common/types.h"
+#include "common/params.h"
 #include <Eigen/Dense>
 #include <mavros_msgs/msg/attitude_target.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -62,7 +62,6 @@ struct DesiredState {
 
 
 struct ControlCommand
-// NOTE: 该结构体是控制器的输出
 {
   ControlSource source;
   ControlType type;

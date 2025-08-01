@@ -2,8 +2,8 @@
 #include <zmq.hpp>
 #include <zmq_addon.hpp>
 
-#include "server.h"
-#include "datas.h"
+#include "zmq/server.h"
+#include "common/datas.h"
 
 
 namespace px4ctrl

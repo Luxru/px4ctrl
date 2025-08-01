@@ -1,9 +1,4 @@
-#include "fsm.h"
-#include "bridge.h"
-#include "controller.h"
-#include "datas.h"
-#include "params.h"
-#include "types.h"
+#include "fsm/fsm.h"
 
 #include <mavros_msgs/msg/state.hpp>
 #include <px4ctrl_msgs/msg/command.hpp>

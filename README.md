@@ -10,35 +10,26 @@
     Px4Ctrl
   </p>
   <img align="center" src=https://img.shields.io/badge/license-GPL--3.0-blue  alt="license"/>
-  
 </div>
 
-<!-- ABOUT -->
 ## About
-基于Mavros实现的Px4控制器
+A Px4 controller implemented based on Mavros.
 
 ## Architecture
 
-Outter Loop: Based on current state estimation or user command to switch control mode (change selection)
+**Outer Loop:** Switches control mode based on current state estimation or user command.
 
-Control Mode>:
-1. Safe Controller(only control attitude)
-2. Position Controller(common mode, when has 6Dof estimation)
-3. Command Controller(ROS Controller)
+**Control Modes:**
+1.  **Position Controller:** The common mode, used when 6-DoF estimation is available.
+2.  **Command Controller:** For control via an external Controller.
 
-<!-- GETTING STARTED -->
-## Getting Started
-TODO
-
-### Prerequisites
-- [spdlog](https://github.com/gabime/spdlog) >=v1.14.1 
-- [GLFW](https://github.com/glfw/glfw)  == 3.4 
-- OpenGL >= 3.3
-- [format](https://github.com/fmtlib/fmt) 
+## Prerequisites
+- [spdlog](https://github.com/gabime/spdlog)
 - [C++ 20](https://en.cppreference.com/w/cpp/compiler_support)
 
-### Installation
-```
+## Installation
+
+```bash
 git clone https://github.com/CQU-UISC/px4ctrl.git
 cd px4ctrl
 git submodule update --init --recursive
@@ -47,25 +38,23 @@ cmake ..
 make -j4
 ```
 
-<!-- USAGE EXAMPLES -->
 ## Usage
+
 TODO
 
-<!-- ROADMAP -->
 ## Roadmap
 
-- [ ] 使用DDS实现
-- [ ] 添加安全控制方法（odom timeout等状况，紧急；降落等）
-- [ ] move zmq proxy
-- [x] 存在Bug， forece hover 姿态控制会出问题
-- [x] 重新起飞时，重设油门估计
+  - [ ] Add safety control methods (for situations like odom timeout, emergency landing, etc.)
+  - [x] Implement using DDS
+  - [x] Move ZMQ proxy
+  - [x] Bug exists: Attitude control fails in force hover mode.
+  - [x] Reset throttle estimation upon re-takeoff.
 
-
-<!-- CONTACT -->
 ## Contact
+
 Xu Lu - lux@cqu.edu.cn
 
-<!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
-* [ZJU FastLab](https://github.com/ZJU-FAST-Lab)
-* [UZH Robotics and Perception Group](https://github.com/uzh-rpg)
+
+  * [ZJU FastLab](https://github.com/ZJU-FAST-Lab)
+  * [UZH Robotics and Perception Group](https://github.com/uzh-rpg)

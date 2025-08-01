@@ -31,12 +31,12 @@ namespace px4ctrl{
         double mass;//kg
         std::array<double,3> inertia;//kg*m^2
         double g;//m/s^2
-        ThrustMod thrustmod;//估计推力 or 推力映射
-        std::array<double,3> thrustmap; //推力映射 c2,c1,c0
-        double init_hover_thrust; //初始悬停推力
-        double max_thrust; //最大推力 无单位 <= 1
-        double min_thrust; //最小推力 无单位 >= 0
-        double max_bodyrate; //最大角速度 rad/s
+        ThrustMod thrustmod;
+        std::array<double,3> thrustmap;
+        double init_hover_thrust;
+        double max_thrust;
+        double min_thrust;
+        double max_bodyrate;
     };
 
     enum class Guard{

@@ -1,6 +1,6 @@
-#include "controller.h"
-#include "params.h"
-#include <Eigen/src/Geometry/Quaternion.h>
+#include "common/params.h"
+#include "controller/controller.h"
+
 #include <chrono>
 #include <cmath>
 #include <spdlog/spdlog.h>
@@ -173,11 +173,9 @@ bool Se3Control::estimateThrustModel(const Eigen::Vector3d &est_a,
 }
 
 /*
-thr2acc 是一个常数，用于将油门值转换为加速度
+thr2acc
 let des_acc be x, gravity be g, hover_percentage be h, thrust be t, then
 t = (1+x/g)*h = h + (h/g)*x, h need to be estimated
-简易推力模型是一个线性模型，认为油门值和产生的加速度是一个线性关系，
-会在线根据期望机体z轴加速度和实际机体z轴加速度估计线性模型的斜率.
 */
 void Se3Control::resetThrustMapping() {
   auto init_thr2acc = quad_params_.g / quad_params_.init_hover_thrust;

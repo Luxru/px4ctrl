@@ -27,18 +27,20 @@ find_package(mavros_msgs REQUIRED)
 find_package(px4ctrl_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
 
-include_directories(
-  include
-  ${EIGEN_INCLUDE_DIRS}
+add_executable(px4ctrl_node
+  src/main.cpp
+  src/controller/controller.cpp
+  src/px4/bridge.cpp
+  src/px4/frame_transforms.cpp
+  src/fsm/fsm.cpp
+  src/zmq/server.cpp
 )
 
-add_executable(px4ctrl_node
-  src/node.cpp
-  src/controller.cpp
-  src/bridge.cpp
-  src/fsm.cpp
-  src/server.cpp
-  src/frame_transforms.cpp
+target_include_directories(px4ctrl_node
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:include>
+    ${EIGEN_INCLUDE_DIRS}
 )
 
 ament_target_dependencies(px4ctrl_node

@@ -45,7 +45,7 @@
 #include <Eigen/Geometry>
 #include <spdlog/spdlog.h>
 
-#include "types.h"
+#include "common/types.h"
 
 namespace px4ctrl {
 

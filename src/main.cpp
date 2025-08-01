@@ -8,9 +8,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/node.hpp>
 
-#include "fsm.h"
-#include "bridge.h"
-#include "server.h"
+#include "fsm/fsm.h"
+#include "px4/bridge.h"
+#include "zmq/server.h"
 
 std::shared_ptr<px4ctrl::Px4Ctrl> px4ctrl_fsm;
 
@@ -42,13 +42,14 @@ int main( int argc, char* argv[] ) {
         spdlog::error( "zmq config file not found: {}", zmq_cfg_file );
         return -1;
     }
-    // log filenamez
+
+    // log filenames
     std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::string date(30, '\0');
     std::strftime(&date[0], date.size(), "%Y-%m-%d-%H:%M:%S",std::localtime(&now));
     std::string log_file = base_dir + "/log/px4ctrl_" + date + ".log";
 
-    //zmq contex
+    //zmq context
     zmq::context_t ctx(1);
 
     // load params
@@ -56,20 +57,20 @@ int main( int argc, char* argv[] ) {
     auto zmq_cfg = px4ctrl::ui::ZmqParas::load(zmq_cfg_file);
     
     //zmq
-    std::shared_ptr<px4ctrl::ui::ZmqProxy>  zmq_proxy = std::make_shared<px4ctrl::ui::ZmqProxy>(ctx, zmq_cfg);
-    std::shared_ptr<px4ctrl::ui::Px4Server> px4ctrl_server = std::make_shared<px4ctrl::ui::Px4Server>(ctx, zmq_cfg);
-    std::shared_ptr<px4ctrl::ui::zmq_sink_mt> zmq_sink = std::make_shared<px4ctrl::ui::zmq_sink_mt>(ctx, zmq_cfg);
+    auto zmq_proxy = std::make_shared<px4ctrl::ui::ZmqProxy>(ctx, zmq_cfg);
+    auto px4ctrl_server = std::make_shared<px4ctrl::ui::Px4Server>(ctx, zmq_cfg);
+    auto zmq_sink = std::make_shared<px4ctrl::ui::zmq_sink_mt>(ctx, zmq_cfg);
 
     // init logging
-    std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    std::shared_ptr<spdlog::sinks::basic_file_sink_mt>  file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file, true);
-
-    std::shared_ptr<spdlog::logger> logger_ptr = std::make_shared<spdlog::logger>("px4ctrl", spdlog::sinks_init_list{console_sink, file_sink,zmq_sink});
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file, true);
+    auto logger_ptr = std::make_shared<spdlog::logger>("px4ctrl", spdlog::sinks_init_list{console_sink, file_sink,zmq_sink});
+    
     spdlog::set_default_logger(logger_ptr);
 
-    std::shared_ptr<px4ctrl::Px4CtrlParams> px4ctrl_params = std::make_shared<px4ctrl::Px4CtrlParams>(cfg);
-    std::shared_ptr<px4ctrl::Px4State> px4_state = std::make_shared<px4ctrl::Px4State>();
-    std::shared_ptr<px4ctrl::Px4CtrlRosBridge> px4_bridge = std::make_shared<px4ctrl::Px4CtrlRosBridge>(node, px4_state);
+    auto px4ctrl_params = std::make_shared<px4ctrl::Px4CtrlParams>(cfg);
+    auto px4_state = std::make_shared<px4ctrl::Px4State>();
+    auto px4_bridge = std::make_shared<px4ctrl::Px4CtrlRosBridge>(node, px4_state);
     px4ctrl_fsm = std::make_shared<px4ctrl::Px4Ctrl>(px4_bridge, px4_state, px4ctrl_params, px4ctrl_server);
     signal( SIGINT, sigintHandler );
     px4ctrl_fsm->run();
