@@ -2,6 +2,7 @@
 // #include <chrono>
 #include <functional>
 #include <spdlog/spdlog.h>
+#include <string>
 
 #include "px4/bridge.h"
 #include "px4/frame_transforms.h"
@@ -21,29 +22,6 @@ namespace px4ctrl {
         Eigen::Vector3d vec_out;
         vec_out << vec_in[0], -vec_in[1], -vec_in[2];
         return vec_out;
-    }
-
-    inline Eigen::Quaterniond rotate_quat_ENU_NED(const Eigen::Quaterniond& quat_in) {
-        // Transform from orientation represented in ROS format to PX4 format and back
-        //  * Two steps conversion:
-        //  * 1. aircraft to NED is converted to aircraft to ENU (NED_to_ENU conversion)
-        //  * 2. aircraft to ENU is converted to baselink to ENU (baselink_to_aircraft conversion)
-        // OR 
-        //  * 1. baselink to ENU is converted to baselink to NED (ENU_to_NED conversion)
-        //  * 2. baselink to NED is converted to aircraft to NED (aircraft_to_baselink conversion
-        // NED_ENU_Q Static quaternion needed for rotating between ENU and NED frames
-        Eigen::Vector3d euler_1(M_PI, 0.0, M_PI_2);
-        Eigen::Quaterniond NED_ENU_Q(Eigen::AngleAxisd(euler_1.z(), Eigen::Vector3d::UnitZ()) *
-            Eigen::AngleAxisd(euler_1.y(), Eigen::Vector3d::UnitY()) *
-            Eigen::AngleAxisd(euler_1.x(), Eigen::Vector3d::UnitX()));
-        
-        // AIRCRAFT_BASELINK_Q Static quaternion needed for rotating between aircraft and base_link frames
-        Eigen::Vector3d euler_2(M_PI, 0.0, 0.0);
-        Eigen::Quaterniond AIRCRAFT_BASELINK_Q(Eigen::AngleAxisd(euler_2.z(), Eigen::Vector3d::UnitZ()) *
-            Eigen::AngleAxisd(euler_2.y(), Eigen::Vector3d::UnitY()) *
-            Eigen::AngleAxisd(euler_2.x(), Eigen::Vector3d::UnitX()));
-        
-        return (NED_ENU_Q*quat_in)*AIRCRAFT_BASELINK_Q;
     }
 
     Px4CtrlRosBridge::Px4CtrlRosBridge(rclcpp::Node::SharedPtr node,std::shared_ptr<Px4State> px4_state)
@@ -451,52 +429,52 @@ namespace px4ctrl {
     void Px4CtrlRosBridge::load_params(){
          // Topics Names
          // Sub
-        this->node->declare_parameter("topics_names.vehicle_status_sub_topic", "fmu/out/vehicle_status");
-        this->node->declare_parameter("topics_names.vehicle_odometry_sub_topic", "fmu/out/vehicle_odometry");
-        this->node->declare_parameter("topics_names.px4_state_sub_topic", "/mavros/state");
-        this->node->declare_parameter("topics_names.px4_extended_state_sub_topic", "/mavros/extended_state");
-        this->node->declare_parameter("topics_names.imu_sub_topic", "/mavros/imu/data");
-        this->node->declare_parameter("topics_names.bat_sub_topic", "/mavros/battery");
-        this->node->declare_parameter("topics_names.ext_odom_sub_topic", "/px4ctrl/ext_odom");
-        this->node->declare_parameter("topics_names.ctrl_cmd_sub_topic", "/px4ctrl/ctrl_cmd");
+        this->node->declare_parameter<std::string>("vehicle_status_sub_topic", "fmu/out/vehicle_status");
+        this->node->declare_parameter<std::string>("vehicle_odometry_sub_topic", "fmu/out/vehicle_odometry");
+        this->node->declare_parameter<std::string>("px4_state_sub_topic", "/mavros/state");
+        this->node->declare_parameter<std::string>("px4_extended_state_sub_topic", "/mavros/extended_state");
+        this->node->declare_parameter<std::string>("imu_sub_topic", "/mavros/imu/data_raw");
+        this->node->declare_parameter<std::string>("bat_sub_topic", "/mavros/battery");
+        this->node->declare_parameter<std::string>("ext_odom_sub_topic", "/px4ctrl/ext_odom");
+        this->node->declare_parameter<std::string>("ctrl_cmd_sub_topic", "/px4ctrl/ctrl_cmd");
         // Pub
-        this->node->declare_parameter("topics_names.actuator_motors_pub_topic", "/fmu/in/actuator_motors");
-        this->node->declare_parameter("topics_names.rates_setpoint_pub_topic", "/fmu/in/vehicle_rates_setpoint");
-        this->node->declare_parameter("topics_names.attitude_setpoint_pub_topic", "/fmu/in/vehicle_attitude_setpoint");
-        this->node->declare_parameter("topics_names.thrust_setpoint_pub_topic", "/fmu/in/vehicle_thrust_setpoint");
-        this->node->declare_parameter("topics_names.torque_setpoint_pub_topic", "/fmu/in/vehicle_torque_setpoint");
-        this->node->declare_parameter("topics_names.offboard_control_mode_pub_topic", "/fmu/in/offboard_control_mode");
-        this->node->declare_parameter("topics_names.allow_cmdctrl_pub_topic", "/px4ctrl/allow_cmd_ctrl");
-        this->node->declare_parameter("topics_names.vehicle_odometry_pub_topic", "/px4ctrl/vehicle_odometry");
+        this->node->declare_parameter<std::string>("actuator_motors_pub_topic", "/fmu/in/actuator_motors");
+        this->node->declare_parameter<std::string>("rates_setpoint_pub_topic", "/fmu/in/vehicle_rates_setpoint");
+        this->node->declare_parameter<std::string>("attitude_setpoint_pub_topic", "/fmu/in/vehicle_attitude_setpoint");
+        this->node->declare_parameter<std::string>("thrust_setpoint_pub_topic", "/fmu/in/vehicle_thrust_setpoint");
+        this->node->declare_parameter<std::string>("torque_setpoint_pub_topic", "/fmu/in/vehicle_torque_setpoint");
+        this->node->declare_parameter<std::string>("offboard_control_mode_pub_topic", "/fmu/in/offboard_control_mode");
+        this->node->declare_parameter<std::string>("allow_cmdctrl_pub_topic", "/px4ctrl/allow_cmd_ctrl");
+        this->node->declare_parameter<std::string>("vehicle_odometry_pub_topic", "/px4ctrl/vehicle_odometry");
         // Client
-        this->node->declare_parameter("topics_names.px4_set_mode_client_topic", "/mavros/set_mode");
-        this->node->declare_parameter("topics_names.px4_arming_client_topic", "/mavros/cmd/arming");
-        this->node->declare_parameter("topics_names.px4_cmd_client_topic", "/mavros/cmd/command");
-        this->node->declare_parameter("topics_names.vehicle_command_client_topic", "/fmu/vehicle_command");
+        this->node->declare_parameter<std::string>("px4_set_mode_client_topic", "/mavros/set_mode");
+        this->node->declare_parameter<std::string>("px4_arming_client_topic", "/mavros/cmd/arming");
+        this->node->declare_parameter<std::string>("px4_cmd_client_topic", "/mavros/cmd/command");
+        this->node->declare_parameter<std::string>("vehicle_command_client_topic", "/fmu/vehicle_command");
         // Sub
-        vehicle_status_sub_topic = this->node->get_parameter("topics_names.vehicle_status_sub_topic").as_string();
-        vehicle_odometry_sub_topic = this->node->get_parameter("topics_names.vehicle_odometry_sub_topic").as_string();
-        px4_state_sub_topic = this->node->get_parameter("topics_names.px4_state_sub_topic").as_string();
-        px4_extended_state_sub_topic = this->node->get_parameter("topics_names.px4_extended_state_sub_topic").as_string();
-        imu_sub_topic = this->node->get_parameter("topics_names.imu_sub_topic").as_string();
-        bat_sub_topic = this->node->get_parameter("topics_names.bat_sub_topic").as_string();
-        ext_odom_sub_topic = this->node->get_parameter("topics_names.ext_odom_sub_topic").as_string();
-        ctrl_cmd_sub_topic = this->node->get_parameter("topics_names.ctrl_cmd_sub_topic").as_string();
+        vehicle_status_sub_topic = this->node->get_parameter("vehicle_status_sub_topic").as_string();
+        vehicle_odometry_sub_topic = this->node->get_parameter("vehicle_odometry_sub_topic").as_string();
+        px4_state_sub_topic = this->node->get_parameter("px4_state_sub_topic").as_string();
+        px4_extended_state_sub_topic = this->node->get_parameter("px4_extended_state_sub_topic").as_string();
+        imu_sub_topic = this->node->get_parameter("imu_sub_topic").as_string();
+        bat_sub_topic = this->node->get_parameter("bat_sub_topic").as_string();
+        ext_odom_sub_topic = this->node->get_parameter("ext_odom_sub_topic").as_string();
+        ctrl_cmd_sub_topic = this->node->get_parameter("ctrl_cmd_sub_topic").as_string();
         
         // Pub
-        vehicle_odometry_pub_topic = this->node->get_parameter("topics_names.vehicle_odometry_pub_topic").as_string();
-        rates_setpoint_pub_topic = this->node->get_parameter("topics_names.rates_setpoint_pub_topic").as_string();
-        actuator_motors_pub_topic = this->node->get_parameter("topics_names.actuator_motors_pub_topic").as_string();
-        attitude_setpoint_pub_topic = this->node->get_parameter("topics_names.attitude_setpoint_pub_topic").as_string();
-        thrust_setpoint_pub_topic = this->node->get_parameter("topics_names.thrust_setpoint_pub_topic").as_string();
-        torque_setpoint_pub_topic = this->node->get_parameter("topics_names.torque_setpoint_pub_topic").as_string();
-        offboard_control_mode_pub_topic = this->node->get_parameter("topics_names.offboard_control_mode_pub_topic").as_string();
-        allow_cmdctrl_pub_topic = this->node->get_parameter("topics_names.allow_cmdctrl_pub_topic").as_string();
+        vehicle_odometry_pub_topic = this->node->get_parameter("vehicle_odometry_pub_topic").as_string();
+        rates_setpoint_pub_topic = this->node->get_parameter("rates_setpoint_pub_topic").as_string();
+        actuator_motors_pub_topic = this->node->get_parameter("actuator_motors_pub_topic").as_string();
+        attitude_setpoint_pub_topic = this->node->get_parameter("attitude_setpoint_pub_topic").as_string();
+        thrust_setpoint_pub_topic = this->node->get_parameter("thrust_setpoint_pub_topic").as_string();
+        torque_setpoint_pub_topic = this->node->get_parameter("torque_setpoint_pub_topic").as_string();
+        offboard_control_mode_pub_topic = this->node->get_parameter("offboard_control_mode_pub_topic").as_string();
+        allow_cmdctrl_pub_topic = this->node->get_parameter("allow_cmdctrl_pub_topic").as_string();
       
         // client
-        px4_set_mode_client_topic = this->node->get_parameter("topics_names.px4_set_mode_client_topic").as_string();
-        px4_arming_client_topic = this->node->get_parameter("topics_names.px4_arming_client_topic").as_string();
-        px4_cmd_client_topic = this->node->get_parameter("topics_names.px4_cmd_client_topic").as_string();
-        vehicle_command_client_topic = this->node->get_parameter("topics_names.vehicle_command_client_topic").as_string();
+        px4_set_mode_client_topic = this->node->get_parameter("px4_set_mode_client_topic").as_string();
+        px4_arming_client_topic = this->node->get_parameter("px4_arming_client_topic").as_string();
+        px4_cmd_client_topic = this->node->get_parameter("px4_cmd_client_topic").as_string();
+        vehicle_command_client_topic = this->node->get_parameter("vehicle_command_client_topic").as_string();
     }
 }

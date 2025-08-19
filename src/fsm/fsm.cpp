@@ -181,6 +181,7 @@ void Px4Ctrl::client_command_callback(const ui::ClientPayload &payload){
         {
             spdlog::error("arm failed");
         }
+        controller->resetThrustMapping();
         break;
       case ui::ClientCommand::FORCE_DISARM:
         if (!px4_bridge->force_disarm())

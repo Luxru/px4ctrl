@@ -18,7 +18,7 @@ def generate_launch_description():
                 'px4ctrl_zmq_cfg_name': 'zmq.yaml',
             }],
             remappings=[
-                ('/px4ctrl/vehicle_odometry', '/px4ctrl/ext_odom'),
+                ('/px4ctrl/ext_odom', '/px4ctrl/vehicle_odometry'),
             ],
             emulate_tty=True
         )
