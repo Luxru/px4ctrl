@@ -161,6 +161,9 @@ void Px4Ctrl::compute_hz() {
     odom_hz = odom_count*10;
     odom_count = 0;
     odom_last_time = clock::now();
+    if(odom_hz<100){
+      spdlog::warn("odom hz low:{}",odom_hz);
+    }
   }
   if(timePassed(cmdctrl_last_time)>100){
     cmdctrl_hz = cmdctrl_count * 10;
