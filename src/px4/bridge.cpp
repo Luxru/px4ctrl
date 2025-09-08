@@ -49,6 +49,8 @@ namespace px4ctrl {
         vehicle_status_sub = this->node->create_subscription<px4_msgs::msg::VehicleStatus>(
             vehicle_status_sub_topic, qos, build_px4ros_cb(px4_state_->vehicle_status));
         // Publishers
+        mavros_attitude_setpoint_pub = this->node->create_publisher<mavros_msgs::msg::AttitudeTarget>(
+            "/mavros/setpoint_raw/attitude", 10);
         attitude_setpoint_pub = this->node->create_publisher<px4_msgs::msg::VehicleAttitudeSetpoint>(
             attitude_setpoint_pub_topic, 10);
         rates_setpoint_pub = this->node->create_publisher<px4_msgs::msg::VehicleRatesSetpoint>(
@@ -248,41 +250,24 @@ namespace px4ctrl {
 
     bool Px4CtrlRosBridge::restart_fcu(){
         // MAVROS version
-        // auto request = std::make_shared<mavros_msgs::srv::CommandLong::Request>();
-        // request->confirmation = true;
-        // request->command = 246;
-        // request->param1 = 1;
-        // request->param2 = 0;
-        // request->param3 = 0;
-        // request->param4 = 0;
-        // request->param5 = 0;
-        // request->param6 = 0;
-        // request->param7 = 0;
-        // auto future = px4_cmd_client->async_send_request(request);
-        // if (future.wait_for(1s) != std::future_status::ready) {
-        //     spdlog::error("restart fcu service call timed out");
-        //     return false;
-        // }
-        // auto response = future.get();
-        // if (!response->success) {
-        //     spdlog::error( "restart fcu rejected by PX4!" );
-        //     return false;
-        // }else{
-        //     spdlog::info( "restart fcu accepted by PX4!" );
-        //     return true;
-        // }
-        // return true;
-        auto request = std::make_shared<px4_msgs::srv::VehicleCommand::Request>();
-        request->request.command = px4_msgs::msg::VehicleCommand::VEHICLE_CMD_PREFLIGHT_REBOOT_SHUTDOWN;
-        request->request.param1 = 1;
-        auto future = px4_vehicle_command_client->async_send_request(request);
+        auto request = std::make_shared<mavros_msgs::srv::CommandLong::Request>();
+        request->confirmation = true;
+        request->command = 246;
+        request->param1 = 1;
+        request->param2 = 0;
+        request->param3 = 0;
+        request->param4 = 0;
+        request->param5 = 0;
+        request->param6 = 0;
+        request->param7 = 0;
+        auto future = px4_cmd_client->async_send_request(request);
         if (future.wait_for(1s) != std::future_status::ready) {
             spdlog::error("restart fcu service call timed out");
             return false;
         }
         auto response = future.get();
-        if (response->reply.result!=response->reply.VEHICLE_CMD_RESULT_ACCEPTED){
-            spdlog::error( "restart fcu rejected by PX4!");
+        if (!response->success) {
+            spdlog::error( "restart fcu rejected by PX4!" );
             return false;
         }else{
             spdlog::info( "restart fcu accepted by PX4!" );
@@ -298,7 +283,33 @@ namespace px4ctrl {
         return;
     }
 
-    void Px4CtrlRosBridge:: pub_bodyrates_target(const double thrust, const Eigen::Vector3d& bodyrates){//输入的油门应该是映射后的px4油门
+    void Px4CtrlRosBridge::mavros_pub_attitude_target(const double thrust, const Eigen::Quaterniond& quat){
+        mavros_msgs::msg::AttitudeTarget msg;
+        msg.header.stamp    = rclcpp::Clock(RCL_ROS_TIME).now();
+        msg.header.frame_id = std::string( "FCU" );
+        msg.type_mask = mavros_msgs::msg::AttitudeTarget::IGNORE_ROLL_RATE | mavros_msgs::msg::AttitudeTarget::IGNORE_PITCH_RATE | mavros_msgs::msg::AttitudeTarget::IGNORE_YAW_RATE;
+        msg.orientation.w = quat.w();
+        msg.orientation.x = quat.x();
+        msg.orientation.y = quat.y();
+        msg.orientation.z = quat.z();
+        msg.thrust = thrust;//9.81==>Hover thrust=9.81
+
+        mavros_attitude_setpoint_pub->publish( msg );
+    }
+    
+    void Px4CtrlRosBridge::mavros_pub_bodyrates_target(const double thrust, const Eigen::Vector3d& bodyrates){
+        mavros_msgs::msg::AttitudeTarget msg;
+        msg.header.stamp    =  rclcpp::Clock(RCL_ROS_TIME).now();
+        msg.header.frame_id = std::string( "FCU" );
+        msg.type_mask = mavros_msgs::msg::AttitudeTarget::IGNORE_ATTITUDE;
+        msg.body_rate.x = bodyrates[0];
+        msg.body_rate.y = bodyrates[1];
+        msg.body_rate.z = bodyrates[2];
+        msg.thrust = thrust;
+        mavros_attitude_setpoint_pub->publish( msg );
+    }
+
+    void Px4CtrlRosBridge::pub_bodyrates_target(const double thrust, const Eigen::Vector3d& bodyrates){//输入的油门应该是映射后的px4油门
         pub_offboard_control_mode_msg(controller::ControlType::BODY_RATES);
         px4_msgs::msg::VehicleRatesSetpoint rates_setpoint_msg;
         rates_setpoint_msg.timestamp = this->node->get_clock()->now().nanoseconds() / 1000;

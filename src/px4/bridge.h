@@ -86,6 +86,8 @@ public:
   bool restart_fcu();
   
   //ctrl interface
+  void mavros_pub_attitude_target(const double thrust, const Eigen::Quaterniond& quat);
+  void mavros_pub_bodyrates_target(const double thrust, const Eigen::Vector3d& bodyrates);
   void pub_bodyrates_target(const double thrust, const Eigen::Vector3d& bodyrates);
   void pub_attitude_target(const double thrust, const Eigen::Quaterniond& quat);
   void pub_torque_target(const double thrust, const Eigen::Vector3d& torque);
@@ -113,6 +115,7 @@ private:
   rclcpp::Subscription<px4ctrl_msgs::msg::Command>::SharedPtr ctrl_cmd_sub;
 
   // Publishers
+  rclcpp::Publisher<mavros_msgs::msg::AttitudeTarget>::SharedPtr mavros_attitude_setpoint_pub; //deprecated
   rclcpp::Publisher<px4_msgs::msg::ActuatorMotors>::SharedPtr actuator_motors_pub;
   rclcpp::Publisher<px4_msgs::msg::VehicleAttitudeSetpoint>::SharedPtr attitude_setpoint_pub;
   rclcpp::Publisher<px4_msgs::msg::VehicleRatesSetpoint>::SharedPtr rates_setpoint_pub;

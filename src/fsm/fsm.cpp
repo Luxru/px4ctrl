@@ -405,18 +405,22 @@ void Px4Ctrl::apply_control(const controller::ControlCommand &cmd, const control
     case controller::ControlType::BODY_RATES: {
       Eigen::Vector3d bodyrates = cmd.bodyrates.cwiseMax(-px4ctrl_params->quadrotor_params.max_bodyrate)
                                       .cwiseMin(px4ctrl_params->quadrotor_params.max_bodyrate);
-      px4_bridge->pub_bodyrates_target(thrust, bodyrates);
+      px4_bridge->mavros_pub_bodyrates_target(thrust, bodyrates);
+      //px4_bridge->pub_bodyrates_target(thrust, bodyrates);
       break;
     }
     case controller::ControlType::ATTITUDE: {
-      px4_bridge->pub_attitude_target(thrust, cmd.attitude);
+      px4_bridge->mavros_pub_attitude_target(thrust, cmd.attitude);
+      // px4_bridge->pub_attitude_target(thrust, cmd.attitude);
       break;
     }
     case controller::ControlType::TORQUE:{
+      // current only in sim
       px4_bridge->pub_torque_target(thrust, cmd.torques);
       break;
     }
     case controller::ControlType::ROTOR_THRUST:{
+      // current only in sim
       px4_bridge->pub_actuator_target(cmd.rotors_thrust);
       break;
     }
